@@ -3,11 +3,8 @@ from __future__ import annotations
 import copy
 import email.utils
 import html
-import json
 import os
 import re
-import unicodedata
-import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -19,358 +16,40 @@ import feedparser
 
 
 SALIDA = Path("rss.xml")
-MAXIMO_GUARDADOS = 2000
+MAXIMO_GUARDADOS = 2500
 
 
+# Canales RSS oficiales públicos de Bloomberg.
 FUENTES_BLOOMBERG = {
-    "Mercados": (
+    "Bloomberg Markets": (
         "https://feeds.bloomberg.com/"
         "markets/news.rss"
     ),
-    "Empresas e industrias": (
+    "Bloomberg Industries": (
         "https://feeds.bloomberg.com/"
         "industries/news.rss"
     ),
-    "Tecnologia": (
+    "Bloomberg Technology": (
         "https://feeds.bloomberg.com/"
         "technology/news.rss"
     ),
-    "Economia": (
+    "Bloomberg Economics": (
         "https://feeds.bloomberg.com/"
         "economics/news.rss"
     ),
-    "Politica": (
+    "Bloomberg Politics": (
         "https://feeds.bloomberg.com/"
         "politics/news.rss"
     ),
-}
-
-
-BME_API = (
-    "https://apiweb.bolsasymercados.es/"
-    "Market/v1/EQ/ListedCompanies"
-)
-
-
-MERCADOS_BME = {
-    "Mercado Continuo": (
-        "SIBE",
-        "",
+    "Bloomberg Wealth": (
+        "https://feeds.bloomberg.com/"
+        "wealth/news.rss"
     ),
-    "BME Growth": (
-        "MTF",
-        "BMEGrowth",
-    ),
-    "BME Scaleup": (
-        "MTF",
-        "BMEScaleup",
+    "Bloomberg Businessweek": (
+        "https://feeds.bloomberg.com/"
+        "businessweek/news.rss"
     ),
 }
-
-
-# Marcas, filiales y productos que Bloomberg
-# puede usar en lugar del nombre bursatil.
-ALIAS = {
-    "ACCIONA": (
-        "acciona",
-    ),
-    "ACCIONA ENERGIA": (
-        "acciona energy",
-        "acciona energia",
-    ),
-    "ACERINOX": (
-        "acerinox",
-        "north american stainless",
-        "vdm metals",
-    ),
-    "ACS": (
-        "acs group",
-        "hochtief",
-        "turner construction",
-        "cimic",
-    ),
-    "AENA": (
-        "aena",
-    ),
-    "AIRBUS": (
-        "airbus",
-    ),
-    "ALMIRALL": (
-        "almirall",
-        "ilumetri",
-        "ebglyss",
-        "klisyri",
-        "skilarence",
-    ),
-    "AMADEUS": (
-        "amadeus it group",
-        "amadeus travel",
-    ),
-    "BANCO SABADELL": (
-        "banco sabadell",
-        "sabadell bank",
-        "tsb banking",
-    ),
-    "BANCO SANTANDER": (
-        "banco santander",
-        "santander bank",
-        "santander group",
-        "openbank",
-    ),
-    "BBVA": (
-        "bbva",
-        "banco bilbao vizcaya",
-    ),
-    "CAIXABANK": (
-        "caixabank",
-        "banco bpi",
-    ),
-    "CAF": (
-        "caf rail",
-        "caf group",
-        "solaris bus",
-    ),
-    "CELLNEX": (
-        "cellnex",
-        "cellnex telecom",
-    ),
-    "COX": (
-        "cox abengoa",
-        "cox energy",
-        "cox group",
-    ),
-    "EDREAMS ODIGEO": (
-        "edreams odigeo",
-        "edreams",
-        "opodo",
-    ),
-    "EIDF": (
-        "eidf solar",
-    ),
-    "ELECNOR": (
-        "elecnor",
-        "enerfin",
-    ),
-    "FCC": (
-        "fcc group",
-        "fcc environmental",
-        "cementos portland valderrivas",
-    ),
-    "FERROVIAL": (
-        "ferrovial",
-        "cintra",
-    ),
-    "FLUIDRA": (
-        "fluidra",
-        "zodiac pool",
-    ),
-    "GRIFOLS": (
-        "grifols",
-        "biotest",
-        "haema",
-        "plasmacare",
-        "bpl plasma",
-    ),
-    "HBX GROUP": (
-        "hbx group",
-        "hotelbeds",
-    ),
-    "IAG": (
-        "international airlines group",
-        "british airways",
-        "iberia airlines",
-        "aer lingus",
-        "vueling",
-    ),
-    "IBERDROLA": (
-        "iberdrola",
-        "avangrid",
-        "scottishpower",
-    ),
-    "INDITEX": (
-        "inditex",
-        "zara",
-        "bershka",
-        "pull and bear",
-        "massimo dutti",
-        "stradivarius",
-        "oysho",
-    ),
-    "INDRA": (
-        "indra sistemas",
-        "indra group",
-        "minsait",
-    ),
-    "LLEIDA.NET": (
-        "lleida.net",
-        "lleidanet",
-    ),
-    "MELIA HOTELS": (
-        "melia hotels",
-        "melia hotel",
-    ),
-    "MFE-MEDIAFOREUROPE": (
-        "mediaforeurope",
-        "mediaset espana",
-    ),
-    "NATURGY": (
-        "naturgy",
-        "gas natural fenosa",
-    ),
-    "OHLA": (
-        "ohla group",
-        "obrascon huarte lain",
-    ),
-    "ORYZON GENOMICS": (
-        "oryzon genomics",
-        "iadademstat",
-        "vafidemstat",
-    ),
-    "PARLEM TELECOM": (
-        "parlem telecom",
-        "grupo parlem",
-    ),
-    "PHARMAMAR": (
-        "pharmamar",
-        "zepzelca",
-        "lurbinectedin",
-        "yondelis",
-        "trabectedin",
-        "aplidin",
-        "plitidepsin",
-        "sylentis",
-    ),
-    "PUIG": (
-        "puig beauty",
-        "charlotte tilbury",
-        "rabanne",
-        "carolina herrera",
-        "jean paul gaultier",
-    ),
-    "REDEIA": (
-        "redeia",
-        "red electrica de espana",
-        "hispasat",
-    ),
-    "REDEGAL": (
-        "redegal",
-    ),
-    "ROVI": (
-        "laboratorios rovi",
-        "rovi pharma",
-    ),
-    "TALGO": (
-        "patentes talgo",
-        "grupo talgo",
-        "talgo trains",
-    ),
-    "TELEFONICA": (
-        "telefonica",
-        "movistar",
-        "o2 germany",
-        "telefonica deutschland",
-        "telefonica brasil",
-        "vivo brasil",
-    ),
-}
-
-
-SUFIJOS = (
-    " sociedad anonima",
-    " sociedad limitada",
-    " socimi",
-    " s a",
-    " s l",
-    " sa",
-    " sl",
-    " plc",
-    " limited",
-    " ltd",
-    " corporation",
-    " corp",
-)
-
-
-NO_VALIDAS = {
-    "group",
-    "grupo",
-    "holding",
-    "holdings",
-    "socimi",
-    "company",
-    "companies",
-    "international",
-    "global",
-    "capital",
-    "properties",
-    "property",
-    "energy",
-    "energia",
-    "solar",
-    "investment",
-    "investments",
-}
-
-
-def normalizar(valor: str) -> str:
-    valor = html.unescape(
-        valor or ""
-    )
-
-    valor = unicodedata.normalize(
-        "NFKD",
-        valor,
-    )
-
-    valor = "".join(
-        caracter
-        for caracter in valor
-        if not unicodedata.combining(
-            caracter
-        )
-    )
-
-    valor = valor.casefold().replace(
-        "&",
-        " and ",
-    )
-
-    valor = re.sub(
-        r"<[^>]+>",
-        " ",
-        valor,
-    )
-
-    valor = re.sub(
-        r"[^a-z0-9.+ -]",
-        " ",
-        valor,
-    )
-
-    return " ".join(
-        valor.split()
-    )
-
-
-def limpiar_nombre(valor: str) -> str:
-    valor = normalizar(valor)
-
-    cambio = True
-
-    while cambio:
-        cambio = False
-
-        for sufijo in SUFIJOS:
-            if valor.endswith(sufijo):
-                valor = valor[
-                    :-len(sufijo)
-                ].strip()
-
-                cambio = True
-
-    return valor.strip(
-        " .,-"
-    )
 
 
 def descargar(url: str) -> bytes:
@@ -379,7 +58,6 @@ def descargar(url: str) -> bytes:
         headers={
             "User-Agent": "Mozilla/5.0",
             "Accept": (
-                "application/json,"
                 "application/rss+xml,"
                 "application/xml,"
                 "text/xml;q=0.9,"
@@ -402,280 +80,13 @@ def descargar(url: str) -> bytes:
     return contenido
 
 
-def construir_url_bme(
-    sistema: str,
-    segmento: str,
-) -> str:
-    parametros = {
-        "ISIN": "",
-        "sectorKey": "",
-        "subsectorKey": "",
-        "tradingSystem": sistema,
-        "mtfSegment": segmento,
-        "page": "0",
-        "pageSize": "0",
-    }
+def limpiar_texto(valor: str) -> str:
+    valor = valor or ""
 
-    return (
-        BME_API
-        + "?"
-        + urllib.parse.urlencode(
-            parametros
-        )
-    )
-
-
-def crear_variantes(
-    nombre_legal: str,
-    nombre_accion: str,
-) -> set[str]:
-    posibles = {
-        normalizar(nombre_legal),
-        normalizar(nombre_accion),
-        limpiar_nombre(nombre_legal),
-        limpiar_nombre(nombre_accion),
-    }
-
-    return {
-        variante
-        for variante in posibles
-        if (
-            len(variante) >= 4
-            and variante not in NO_VALIDAS
-        )
-    }
-
-
-def cargar_empresas_bme() -> list[dict]:
-    empresas: dict[
-        tuple[str, str],
-        dict,
-    ] = {}
-
-    for mercado, configuracion in (
-        MERCADOS_BME.items()
-    ):
-        sistema, segmento = configuracion
-
-        url = construir_url_bme(
-            sistema,
-            segmento,
-        )
-
-        contenido = descargar(url)
-
-        respuesta = json.loads(
-            contenido.decode(
-                "utf-8",
-                errors="replace",
-            )
-        )
-
-        registros = respuesta.get(
-            "data",
-            [],
-        )
-
-        print(
-            f"{mercado}: "
-            f"{len(registros)} empresas"
-        )
-
-        for registro in registros:
-            nombre_legal = (
-                registro.get("name")
-                or ""
-            ).strip()
-
-            nombre = (
-                registro.get("shareName")
-                or nombre_legal
-            ).strip()
-
-            candidatos = crear_variantes(
-                nombre_legal,
-                nombre,
-            )
-
-            if not nombre or not candidatos:
-                continue
-
-            clave = (
-                normalizar(nombre),
-                mercado,
-            )
-
-            empresas[clave] = {
-                "nombre": nombre,
-                "mercado": mercado,
-                "isin": (
-                    registro.get("isin")
-                    or ""
-                ),
-                "variantes": candidatos,
-            }
-
-    # Añade marcas, filiales y productos.
-    for nombre_alias, lista_alias in (
-        ALIAS.items()
-    ):
-        buscado = normalizar(
-            nombre_alias
-        )
-
-        coincidencias = [
-            empresa
-            for empresa
-            in empresas.values()
-            if (
-                buscado
-                in empresa["variantes"]
-                or normalizar(
-                    empresa["nombre"]
-                ) == buscado
-            )
-        ]
-
-        if coincidencias:
-            for empresa in coincidencias:
-                empresa[
-                    "variantes"
-                ].update(
-                    normalizar(alias)
-                    for alias in lista_alias
-                )
-
-        else:
-            clave = (
-                buscado,
-                "Cotizada en Espana",
-            )
-
-            empresas[clave] = {
-                "nombre": nombre_alias,
-                "mercado": (
-                    "Cotizada en Espana"
-                ),
-                "isin": "",
-                "variantes": {
-                    normalizar(alias)
-                    for alias in lista_alias
-                    if len(
-                        normalizar(alias)
-                    ) >= 4
-                },
-            }
-
-    resultado = list(
-        empresas.values()
-    )
-
-    resultado.sort(
-        key=lambda empresa: max(
-            (
-                len(variante)
-                for variante
-                in empresa["variantes"]
-            ),
-            default=0,
-        ),
-        reverse=True,
-    )
-
-    print(
-        "Total de empresas controladas: "
-        f"{len(resultado)}"
-    )
-
-    return resultado
-
-
-def contiene_variante(
-    contenido: str,
-    variante: str,
-) -> bool:
-    patron = (
-        r"(?<![a-z0-9])"
-        + re.escape(variante)
-        + r"(?![a-z0-9])"
-    )
-
-    return bool(
-        re.search(
-            patron,
-            contenido,
-        )
-    )
-
-
-def detectar_empresas(
-    titulo: str,
-    resumen: str,
-    empresas_bme: list[dict],
-) -> list[dict]:
-    contenido = normalizar(
-        titulo + " " + resumen
-    )
-
-    encontradas: list[dict] = []
-    vistas: set[tuple[str, str]] = set()
-
-    for empresa in empresas_bme:
-        coincide = any(
-            contiene_variante(
-                contenido,
-                variante,
-            )
-            for variante
-            in empresa["variantes"]
-        )
-
-        if not coincide:
-            continue
-
-        clave = (
-            normalizar(
-                empresa["nombre"]
-            ),
-            empresa["mercado"],
-        )
-
-        if clave in vistas:
-            continue
-
-        vistas.add(clave)
-        encontradas.append(empresa)
-
-    return encontradas
-
-
-def fecha_entrada(entrada) -> datetime:
-    fecha = (
-        entrada.get("published_parsed")
-        or entrada.get("updated_parsed")
-    )
-
-    if fecha:
-        return datetime(
-            fecha.tm_year,
-            fecha.tm_mon,
-            fecha.tm_mday,
-            fecha.tm_hour,
-            fecha.tm_min,
-            fecha.tm_sec,
-            tzinfo=timezone.utc,
-        )
-
-    return datetime.now(
-        timezone.utc
-    )
-
-
-def limpiar_resumen(valor: str) -> str:
     valor = re.sub(
         r"<[^>]+>",
         " ",
-        valor or "",
+        valor,
     )
 
     valor = html.unescape(valor)
@@ -685,9 +96,108 @@ def limpiar_resumen(valor: str) -> str:
     )
 
 
-def obtener_noticias(
-    empresas_bme: list[dict],
-) -> dict[str, dict]:
+def convertir_fecha(entrada) -> datetime:
+    estructura = (
+        entrada.get("published_parsed")
+        or entrada.get("updated_parsed")
+    )
+
+    if estructura:
+        return datetime(
+            estructura.tm_year,
+            estructura.tm_mon,
+            estructura.tm_mday,
+            estructura.tm_hour,
+            estructura.tm_min,
+            estructura.tm_sec,
+            tzinfo=timezone.utc,
+        )
+
+    return datetime.now(
+        timezone.utc
+    )
+
+
+def leer_fuente(
+    seccion: str,
+    url: str,
+) -> list[dict]:
+    contenido = descargar(url)
+
+    fuente = feedparser.parse(
+        contenido
+    )
+
+    if fuente.bozo and not fuente.entries:
+        raise RuntimeError(
+            str(fuente.bozo_exception)
+        )
+
+    resultados: list[dict] = []
+
+    for entrada in fuente.entries:
+        titulo = limpiar_texto(
+            entrada.get(
+                "title",
+                "",
+            )
+        )
+
+        descripcion = limpiar_texto(
+            entrada.get(
+                "summary",
+                entrada.get(
+                    "description",
+                    "",
+                ),
+            )
+        )
+
+        enlace = entrada.get(
+            "link",
+            "",
+        ).strip()
+
+        guid = (
+            entrada.get("id")
+            or enlace
+        )
+
+        autor = (
+            entrada.get("author")
+            or "Bloomberg"
+        )
+
+        if (
+            not titulo
+            or not enlace
+            or not guid
+        ):
+            continue
+
+        resultados.append(
+            {
+                "titulo": titulo,
+                "descripcion": descripcion,
+                "enlace": enlace,
+                "guid": guid,
+                "autor": autor,
+                "fecha": convertir_fecha(
+                    entrada
+                ),
+                "secciones": {seccion},
+            }
+        )
+
+    print(
+        f"{seccion}: "
+        f"{len(resultados)} noticias"
+    )
+
+    return resultados
+
+
+def obtener_noticias() -> dict[str, dict]:
     noticias: dict[str, dict] = {}
     fuentes_correctas = 0
 
@@ -695,95 +205,27 @@ def obtener_noticias(
         FUENTES_BLOOMBERG.items()
     ):
         try:
-            fuente = feedparser.parse(
-                descargar(url)
+            resultados = leer_fuente(
+                seccion,
+                url,
             )
 
-            if (
-                fuente.bozo
-                and not fuente.entries
-            ):
-                raise RuntimeError(
-                    str(
-                        fuente.bozo_exception
-                    )
-                )
-
             fuentes_correctas += 1
-            encontradas = 0
 
-            for entrada in fuente.entries:
-                titulo = html.unescape(
-                    " ".join(
-                        entrada.get(
-                            "title",
-                            "",
-                        ).split()
-                    )
-                )
-
-                resumen = limpiar_resumen(
-                    entrada.get(
-                        "summary",
-                        entrada.get(
-                            "description",
-                            "",
-                        ),
-                    )
-                )
-
-                enlace = entrada.get(
-                    "link",
-                    "",
-                ).strip()
-
-                if not titulo or not enlace:
-                    continue
-
-                empresas = detectar_empresas(
-                    titulo,
-                    resumen,
-                    empresas_bme,
-                )
-
-                if not empresas:
-                    continue
-
-                encontradas += 1
-                clave = enlace.rstrip("/")
+            for noticia in resultados:
+                clave = noticia[
+                    "enlace"
+                ].rstrip("/")
 
                 if clave not in noticias:
-                    noticias[clave] = {
-                        "titulo": titulo,
-                        "resumen": resumen,
-                        "enlace": enlace,
-                        "guid": (
-                            entrada.get("id")
-                            or enlace
-                        ),
-                        "fecha": fecha_entrada(
-                            entrada
-                        ),
-                        "autor": (
-                            entrada.get("author")
-                            or "Bloomberg"
-                        ),
-                        "empresas": empresas,
-                        "secciones": {
-                            seccion
-                        },
-                    }
+                    noticias[clave] = noticia
 
                 else:
                     noticias[clave][
                         "secciones"
-                    ].add(seccion)
-
-            print(
-                f"{seccion}: "
-                f"{encontradas} noticias "
-                "de empresas BME"
-            )
+                    ].update(
+                        noticia["secciones"]
+                    )
 
         except Exception as error:
             print(
@@ -792,13 +234,13 @@ def obtener_noticias(
 
     if fuentes_correctas == 0:
         raise RuntimeError(
-            "No se pudo leer ningun "
-            "canal de Bloomberg"
+            "No se ha podido descargar "
+            "ningun canal de Bloomberg."
         )
 
     print(
-        "Noticias actuales relacionadas "
-        f"con empresas BME: {len(noticias)}"
+        "Total de noticias unicas: "
+        f"{len(noticias)}"
     )
 
     return noticias
@@ -826,10 +268,12 @@ def cargar_anteriores() -> dict[str, ET.Element]:
         return anteriores
 
     try:
-        canal = (
-            ET.parse(SALIDA)
-            .getroot()
-            .find("channel")
+        raiz = ET.parse(
+            SALIDA
+        ).getroot()
+
+        canal = raiz.find(
+            "channel"
         )
 
         if canal is None:
@@ -854,29 +298,58 @@ def cargar_anteriores() -> dict[str, ET.Element]:
 
     except ET.ParseError:
         print(
-            "El rss.xml no era valido "
-            "y se reconstruira"
+            "El rss.xml anterior no era valido. "
+            "Se reconstruira."
         )
 
     return anteriores
 
 
-def crear_item(noticia: dict) -> ET.Element:
-    item = ET.Element("item")
+def crear_descripcion(
+    noticia: dict,
+) -> str:
+    partes: list[str] = []
 
-    nombres = ", ".join(
-        empresa["nombre"]
-        for empresa
-        in noticia["empresas"]
+    if noticia["descripcion"]:
+        partes.append(
+            "<p>"
+            + html.escape(
+                noticia["descripcion"]
+            )
+            + "</p>"
+        )
+
+    secciones = ", ".join(
+        sorted(
+            noticia["secciones"]
+        )
     )
+
+    partes.append(
+        "<p><strong>"
+        "Secciones:"
+        "</strong> "
+        f"{html.escape(secciones)}</p>"
+    )
+
+    partes.append(
+        "<p>El articulo completo puede "
+        "requerir una suscripcion a Bloomberg."
+        "</p>"
+    )
+
+    return "".join(partes)
+
+
+def crear_item(
+    noticia: dict,
+) -> ET.Element:
+    item = ET.Element("item")
 
     ET.SubElement(
         item,
         "title",
-    ).text = (
-        f"[{nombres}] "
-        f"{noticia['titulo']}"
-    )
+    ).text = noticia["titulo"]
 
     ET.SubElement(
         item,
@@ -898,50 +371,12 @@ def crear_item(noticia: dict) -> ET.Element:
         )
     )
 
-    partes: list[str] = []
-
-    if noticia["resumen"]:
-        partes.append(
-            "<p>"
-            + html.escape(
-                noticia["resumen"]
-            )
-            + "</p>"
-        )
-
-    partes.append(
-        "<p><strong>"
-        "Empresas BME:"
-        "</strong> "
-        f"{html.escape(nombres)}</p>"
-    )
-
-    mercados = sorted(
-        {
-            empresa["mercado"]
-            for empresa
-            in noticia["empresas"]
-        }
-    )
-
-    partes.append(
-        "<p><strong>"
-        "Mercados:"
-        "</strong> "
-        f"{html.escape(', '.join(mercados))}"
-        "</p>"
-    )
-
-    partes.append(
-        "<p>El articulo completo puede "
-        "requerir suscripcion a Bloomberg."
-        "</p>"
-    )
-
     ET.SubElement(
         item,
         "description",
-    ).text = "".join(partes)
+    ).text = crear_descripcion(
+        noticia
+    )
 
     ET.SubElement(
         item,
@@ -951,24 +386,7 @@ def crear_item(noticia: dict) -> ET.Element:
     ET.SubElement(
         item,
         "category",
-    ).text = "Empresas cotizadas en Espana"
-
-    categorias_vistas: set[str] = set()
-
-    for empresa in noticia["empresas"]:
-        for categoria in (
-            empresa["nombre"],
-            empresa["mercado"],
-        ):
-            if categoria in categorias_vistas:
-                continue
-
-            categorias_vistas.add(categoria)
-
-            ET.SubElement(
-                item,
-                "category",
-            ).text = categoria
+    ).text = "Bloomberg"
 
     for seccion in sorted(
         noticia["secciones"]
@@ -981,7 +399,9 @@ def crear_item(noticia: dict) -> ET.Element:
     return item
 
 
-def fecha_item(item: ET.Element) -> datetime:
+def fecha_item(
+    item: ET.Element,
+) -> datetime:
     try:
         fecha = (
             email.utils
@@ -1023,8 +443,7 @@ def escribir_rss(
         canal,
         "title",
     ).text = (
-        "Bloomberg - Mercado Continuo, "
-        "BME Growth y BME Scaleup"
+        "Bloomberg — Todas las noticias"
     )
 
     ET.SubElement(
@@ -1038,15 +457,16 @@ def escribir_rss(
         canal,
         "description",
     ).text = (
-        "Noticias de Bloomberg relacionadas "
-        "con empresas del Mercado Continuo, "
-        "BME Growth y BME Scaleup."
+        "Todas las noticias disponibles en "
+        "los canales publicos de Bloomberg: "
+        "mercados, empresas, tecnologia, "
+        "economia, politica y patrimonio."
     )
 
     ET.SubElement(
         canal,
         "language",
-    ).text = "es-ES"
+    ).text = "en"
 
     ET.SubElement(
         canal,
@@ -1094,13 +514,18 @@ def dentro_del_horario() -> bool:
         ZoneInfo("Europe/Madrid")
     )
 
-    # De lunes a sábado, 07:00-22:59.
-    if (
-        ahora.weekday() == 6
-        or not 7 <= ahora.hour <= 22
-    ):
+    # De lunes a sábado.
+    if ahora.weekday() == 6:
         print(
-            "Fuera de horario: "
+            "Hoy es domingo. "
+            "No se actualiza el RSS."
+        )
+        return False
+
+    # Desde las 07:00 hasta las 22:59.
+    if not 7 <= ahora.hour <= 22:
+        print(
+            "Fuera del horario: "
             f"{ahora:%Y-%m-%d %H:%M %Z}"
         )
         return False
@@ -1112,19 +537,9 @@ def main() -> None:
     if not dentro_del_horario():
         return
 
-    empresas_bme = cargar_empresas_bme()
-
-    if not empresas_bme:
-        raise RuntimeError(
-            "No se descargaron empresas "
-            "desde BME"
-        )
-
-    noticias = obtener_noticias(
-        empresas_bme
-    )
-
+    noticias = obtener_noticias()
     guardados = cargar_anteriores()
+
     nuevas = 0
 
     noticias_ordenadas = sorted(
@@ -1149,6 +564,11 @@ def main() -> None:
 
     print(
         f"Noticias nuevas: {nuevas}"
+    )
+
+    print(
+        "Noticias encontradas ahora: "
+        f"{len(noticias)}"
     )
 
     print(
