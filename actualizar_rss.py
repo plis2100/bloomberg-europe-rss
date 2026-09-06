@@ -19,29 +19,27 @@ import feedparser
 
 
 SALIDA = Path("rss.xml")
-
 MAXIMO_GUARDADOS = 2000
 
 
-# Canales RSS oficiales de Bloomberg.
 FUENTES_BLOOMBERG = {
-    "Bloomberg Markets": (
+    "Mercados": (
         "https://feeds.bloomberg.com/"
         "markets/news.rss"
     ),
-    "Bloomberg Industries": (
+    "Empresas e industrias": (
         "https://feeds.bloomberg.com/"
         "industries/news.rss"
     ),
-    "Bloomberg Technology": (
+    "Tecnologia": (
         "https://feeds.bloomberg.com/"
         "technology/news.rss"
     ),
-    "Bloomberg Economics": (
+    "Economia": (
         "https://feeds.bloomberg.com/"
         "economics/news.rss"
     ),
-    "Bloomberg Politics": (
+    "Politica": (
         "https://feeds.bloomberg.com/"
         "politics/news.rss"
     ),
@@ -55,42 +53,38 @@ BME_API = (
 
 
 MERCADOS_BME = {
-    "Mercado Continuo": {
-        "tradingSystem": "SIBE",
-        "mtfSegment": "",
-    },
-    "BME Growth": {
-        "tradingSystem": "MTF",
-        "mtfSegment": "BMEGrowth",
-    },
-    "BME Scaleup": {
-        "tradingSystem": "MTF",
-        "mtfSegment": "BMEScaleup",
-    },
+    "Mercado Continuo": (
+        "SIBE",
+        "",
+    ),
+    "BME Growth": (
+        "MTF",
+        "BMEGrowth",
+    ),
+    "BME Scaleup": (
+        "MTF",
+        "BMEScaleup",
+    ),
 }
 
 
-# Alias adicionales para compañías que Bloomberg
-# puede mencionar por una marca, filial o producto.
-ALIAS_ADICIONALES = {
+# Marcas, filiales y productos que Bloomberg
+# puede usar en lugar del nombre bursatil.
+ALIAS = {
     "ACCIONA": (
         "acciona",
     ),
-    "ACCIONA ENERGÍA": (
-        "acciona energia",
-        "acciona energía",
+    "ACCIONA ENERGIA": (
         "acciona energy",
+        "acciona energia",
     ),
     "ACERINOX": (
         "acerinox",
         "north american stainless",
         "vdm metals",
-        "columbus stainless",
     ),
     "ACS": (
         "acs group",
-        "actividades de construccion y servicios",
-        "actividades de construcción y servicios",
         "hochtief",
         "turner construction",
         "cimic",
@@ -112,9 +106,6 @@ ALIAS_ADICIONALES = {
         "amadeus it group",
         "amadeus travel",
     ),
-    "ARCELORMITTAL": (
-        "arcelormittal",
-    ),
     "BANCO SABADELL": (
         "banco sabadell",
         "sabadell bank",
@@ -124,11 +115,7 @@ ALIAS_ADICIONALES = {
         "banco santander",
         "santander bank",
         "santander group",
-        "santander uk",
         "openbank",
-    ),
-    "BANKINTER": (
-        "bankinter",
     ),
     "BBVA": (
         "bbva",
@@ -136,12 +123,9 @@ ALIAS_ADICIONALES = {
     ),
     "CAIXABANK": (
         "caixabank",
-        "caixa bank",
-        "bpi bank",
         "banco bpi",
     ),
     "CAF": (
-        "construcciones y auxiliar de ferrocarriles",
         "caf rail",
         "caf group",
         "solaris bus",
@@ -149,13 +133,6 @@ ALIAS_ADICIONALES = {
     "CELLNEX": (
         "cellnex",
         "cellnex telecom",
-    ),
-    "CIE AUTOMOTIVE": (
-        "cie automotive",
-    ),
-    "COLONIAL": (
-        "inmobiliaria colonial",
-        "colonial socimi",
     ),
     "COX": (
         "cox abengoa",
@@ -169,23 +146,13 @@ ALIAS_ADICIONALES = {
     ),
     "EIDF": (
         "eidf solar",
-        "energia innovacion y desarrollo fotovoltaico",
-        "energía innovación y desarrollo fotovoltaico",
     ),
     "ELECNOR": (
         "elecnor",
         "enerfin",
     ),
-    "ENAGÁS": (
-        "enagas",
-        "enagás",
-    ),
-    "ENDESA": (
-        "endesa",
-    ),
     "FCC": (
         "fcc group",
-        "fomento de construcciones y contratas",
         "fcc environmental",
         "cementos portland valderrivas",
     ),
@@ -203,7 +170,6 @@ ALIAS_ADICIONALES = {
         "haema",
         "plasmacare",
         "bpl plasma",
-        "interstate blood bank",
     ),
     "HBX GROUP": (
         "hbx group",
@@ -211,7 +177,6 @@ ALIAS_ADICIONALES = {
     ),
     "IAG": (
         "international airlines group",
-        "international consolidated airlines",
         "british airways",
         "iberia airlines",
         "aer lingus",
@@ -221,13 +186,11 @@ ALIAS_ADICIONALES = {
         "iberdrola",
         "avangrid",
         "scottishpower",
-        "scottish power",
     ),
     "INDITEX": (
         "inditex",
         "zara",
         "bershka",
-        "pull&bear",
         "pull and bear",
         "massimo dutti",
         "stradivarius",
@@ -242,43 +205,21 @@ ALIAS_ADICIONALES = {
         "lleida.net",
         "lleidanet",
     ),
-    "LOGISTA": (
-        "logista group",
-        "compania de distribucion integral logista",
-        "compañía de distribución integral logista",
-    ),
-    "MAPFRE": (
-        "mapfre",
-    ),
-    "MELIÁ HOTELS": (
+    "MELIA HOTELS": (
         "melia hotels",
-        "meliá hotels",
         "melia hotel",
-        "meliá hotel",
-    ),
-    "MERLIN PROPERTIES": (
-        "merlin properties",
-    ),
-    "METROVACESA": (
-        "metrovacesa",
     ),
     "MFE-MEDIAFOREUROPE": (
         "mediaforeurope",
-        "mfe-mediaforeurope",
-        "mediaset españa",
         "mediaset espana",
     ),
     "NATURGY": (
         "naturgy",
         "gas natural fenosa",
     ),
-    "NEINOR HOMES": (
-        "neinor homes",
-    ),
     "OHLA": (
         "ohla group",
         "obrascon huarte lain",
-        "obrascón huarte laín",
     ),
     "ORYZON GENOMICS": (
         "oryzon genomics",
@@ -291,7 +232,6 @@ ALIAS_ADICIONALES = {
     ),
     "PHARMAMAR": (
         "pharmamar",
-        "pharma mar",
         "zepzelca",
         "lurbinectedin",
         "yondelis",
@@ -300,14 +240,7 @@ ALIAS_ADICIONALES = {
         "plitidepsin",
         "sylentis",
     ),
-    "PROSEGUR": (
-        "prosegur",
-    ),
-    "PROSEGUR CASH": (
-        "prosegur cash",
-    ),
     "PUIG": (
-        "puig brands",
         "puig beauty",
         "charlotte tilbury",
         "rabanne",
@@ -317,74 +250,32 @@ ALIAS_ADICIONALES = {
     "REDEIA": (
         "redeia",
         "red electrica de espana",
-        "red eléctrica de españa",
-        "red electrica corporation",
         "hispasat",
     ),
     "REDEGAL": (
         "redegal",
     ),
-    "REPSOL": (
-        "repsol",
-    ),
     "ROVI": (
-        "laboratorios farmaceuticos rovi",
-        "laboratorios farmacéuticos rovi",
-        "rovi laboratories",
+        "laboratorios rovi",
         "rovi pharma",
-    ),
-    "SACYR": (
-        "sacyr",
-    ),
-    "SOLARIA": (
-        "solaria energia",
-        "solaria energía",
-        "solaria power",
-    ),
-    "SOLTEC": (
-        "soltec power",
-        "soltec group",
-    ),
-    "SQUIRREL MEDIA": (
-        "squirrel media",
     ),
     "TALGO": (
         "patentes talgo",
         "grupo talgo",
         "talgo trains",
     ),
-    "TÉCNICAS REUNIDAS": (
-        "tecnicas reunidas",
-        "técnicas reunidas",
-    ),
-    "TELEFÓNICA": (
+    "TELEFONICA": (
         "telefonica",
-        "telefónica",
         "movistar",
         "o2 germany",
         "telefonica deutschland",
-        "telefónica deutschland",
         "telefonica brasil",
-        "telefónica brasil",
         "vivo brasil",
-    ),
-    "TUBACEX": (
-        "tubacex",
-    ),
-    "TUBOS REUNIDOS": (
-        "tubos reunidos",
-    ),
-    "UNICaja BANCO": (
-        "unicaja banco",
-        "unicaja bank",
-    ),
-    "VISCOFAN": (
-        "viscofan",
     ),
 }
 
 
-SUFIJOS_SOCIALES = (
+SUFIJOS = (
     " sociedad anonima",
     " sociedad limitada",
     " socimi",
@@ -397,20 +288,17 @@ SUFIJOS_SOCIALES = (
     " ltd",
     " corporation",
     " corp",
-    " group",
 )
 
 
-PALABRAS_NO_VALIDAS = {
-    "grupo",
+NO_VALIDAS = {
     "group",
+    "grupo",
     "holding",
     "holdings",
     "socimi",
     "company",
     "companies",
-    "investment",
-    "investments",
     "international",
     "global",
     "capital",
@@ -419,11 +307,15 @@ PALABRAS_NO_VALIDAS = {
     "energy",
     "energia",
     "solar",
+    "investment",
+    "investments",
 }
 
 
 def normalizar(valor: str) -> str:
-    valor = html.unescape(valor)
+    valor = html.unescape(
+        valor or ""
+    )
 
     valor = unicodedata.normalize(
         "NFKD",
@@ -433,10 +325,15 @@ def normalizar(valor: str) -> str:
     valor = "".join(
         caracter
         for caracter in valor
-        if not unicodedata.combining(caracter)
+        if not unicodedata.combining(
+            caracter
+        )
     )
 
-    valor = valor.casefold()
+    valor = valor.casefold().replace(
+        "&",
+        " and ",
+    )
 
     valor = re.sub(
         r"<[^>]+>",
@@ -444,47 +341,48 @@ def normalizar(valor: str) -> str:
         valor,
     )
 
-    valor = valor.replace("&", " and ")
-
     valor = re.sub(
         r"[^a-z0-9.+ -]",
         " ",
         valor,
     )
 
-    return " ".join(valor.split())
+    return " ".join(
+        valor.split()
+    )
 
 
-def limpiar_nombre_social(nombre: str) -> str:
-    nombre = normalizar(nombre)
+def limpiar_nombre(valor: str) -> str:
+    valor = normalizar(valor)
 
-    cambiado = True
+    cambio = True
 
-    while cambiado:
-        cambiado = False
+    while cambio:
+        cambio = False
 
-        for sufijo in SUFIJOS_SOCIALES:
-            if nombre.endswith(sufijo):
-                nombre = nombre[
+        for sufijo in SUFIJOS:
+            if valor.endswith(sufijo):
+                valor = valor[
                     :-len(sufijo)
                 ].strip()
 
-                cambiado = True
+                cambio = True
 
-    return nombre
+    return valor.strip(
+        " .,-"
+    )
 
 
 def descargar(url: str) -> bytes:
     peticion = urllib.request.Request(
         url,
         headers={
-            "User-Agent": (
-                "Mozilla/5.0 BloombergBMERS​​S/1.0"
-            ),
+            "User-Agent": "Mozilla/5.0",
             "Accept": (
                 "application/json,"
                 "application/rss+xml,"
-                "application/xml,text/xml;q=0.9,"
+                "application/xml,"
+                "text/xml;q=0.9,"
                 "*/*;q=0.8"
             ),
         },
@@ -498,22 +396,22 @@ def descargar(url: str) -> bytes:
 
     if not contenido:
         raise RuntimeError(
-            f"Respuesta vacía: {url}"
+            f"Respuesta vacia: {url}"
         )
 
     return contenido
 
 
 def construir_url_bme(
-    trading_system: str,
-    mtf_segment: str,
+    sistema: str,
+    segmento: str,
 ) -> str:
     parametros = {
         "ISIN": "",
         "sectorKey": "",
         "subsectorKey": "",
-        "tradingSystem": trading_system,
-        "mtfSegment": mtf_segment,
+        "tradingSystem": sistema,
+        "mtfSegment": segmento,
         "page": "0",
         "pageSize": "0",
     }
@@ -521,39 +419,35 @@ def construir_url_bme(
     return (
         BME_API
         + "?"
-        + urllib.parse.urlencode(parametros)
+        + urllib.parse.urlencode(
+            parametros
+        )
     )
 
 
-def crear_variantes_empresa(
-    nombre: str,
+def crear_variantes(
+    nombre_legal: str,
     nombre_accion: str,
 ) -> set[str]:
-    variantes = {
-        normalizar(nombre),
+    posibles = {
+        normalizar(nombre_legal),
         normalizar(nombre_accion),
-        limpiar_nombre_social(nombre),
-        limpiar_nombre_social(nombre_accion),
+        limpiar_nombre(nombre_legal),
+        limpiar_nombre(nombre_accion),
     }
 
-    resultado: set[str] = set()
-
-    for variante in variantes:
-        variante = variante.strip(" .,-")
-
-        if len(variante) < 4:
-            continue
-
-        if variante in PALABRAS_NO_VALIDAS:
-            continue
-
-        resultado.add(variante)
-
-    return resultado
+    return {
+        variante
+        for variante in posibles
+        if (
+            len(variante) >= 4
+            and variante not in NO_VALIDAS
+        )
+    }
 
 
 def cargar_empresas_bme() -> list[dict]:
-    empresas_por_clave: dict[
+    empresas: dict[
         tuple[str, str],
         dict,
     ] = {}
@@ -561,26 +455,30 @@ def cargar_empresas_bme() -> list[dict]:
     for mercado, configuracion in (
         MERCADOS_BME.items()
     ):
+        sistema, segmento = configuracion
+
         url = construir_url_bme(
-            configuracion["tradingSystem"],
-            configuracion["mtfSegment"],
+            sistema,
+            segmento,
         )
 
-        datos = json.loads(
-            descargar(url).decode(
+        contenido = descargar(url)
+
+        respuesta = json.loads(
+            contenido.decode(
                 "utf-8",
                 errors="replace",
             )
         )
 
-        registros = datos.get(
+        registros = respuesta.get(
             "data",
             [],
         )
 
         print(
             f"{mercado}: "
-            f"{len(registros)} empresas descargadas"
+            f"{len(registros)} empresas"
         )
 
         for registro in registros:
@@ -589,103 +487,90 @@ def cargar_empresas_bme() -> list[dict]:
                 or ""
             ).strip()
 
-            nombre_accion = (
+            nombre = (
                 registro.get("shareName")
                 or nombre_legal
             ).strip()
 
-            if not nombre_accion:
+            candidatos = crear_variantes(
+                nombre_legal,
+                nombre,
+            )
+
+            if not nombre or not candidatos:
                 continue
 
             clave = (
-                normalizar(nombre_accion),
+                normalizar(nombre),
                 mercado,
             )
 
-            variantes = crear_variantes_empresa(
-                nombre_legal,
-                nombre_accion,
-            )
-
-            if not variantes:
-                continue
-
-            empresas_por_clave[clave] = {
-                "nombre": nombre_accion,
+            empresas[clave] = {
+                "nombre": nombre,
                 "mercado": mercado,
                 "isin": (
                     registro.get("isin")
                     or ""
                 ),
-                "variantes": variantes,
+                "variantes": candidatos,
             }
 
-    # Añade marcas, filiales y medicamentos que
-    # no aparecen en el nombre oficial de BME.
-    for nombre_alias, variantes_alias in (
-        ALIAS_ADICIONALES.items()
+    # Añade marcas, filiales y productos.
+    for nombre_alias, lista_alias in (
+        ALIAS.items()
     ):
-        nombre_normalizado = normalizar(
+        buscado = normalizar(
             nombre_alias
         )
 
         coincidencias = [
             empresa
             for empresa
-            in empresas_por_clave.values()
+            in empresas.values()
             if (
-                nombre_normalizado
+                buscado
                 in empresa["variantes"]
-                or any(
-                    nombre_normalizado
-                    in variante
-                    or variante
-                    in nombre_normalizado
-                    for variante
-                    in empresa["variantes"]
-                    if len(variante) >= 5
-                )
+                or normalizar(
+                    empresa["nombre"]
+                ) == buscado
             )
         ]
 
         if coincidencias:
             for empresa in coincidencias:
-                empresa["variantes"].update(
-                    normalizar(variante)
-                    for variante
-                    in variantes_alias
+                empresa[
+                    "variantes"
+                ].update(
+                    normalizar(alias)
+                    for alias in lista_alias
                 )
 
         else:
-            # Se mantiene el alias como apoyo por si
-            # BME presenta temporalmente el nombre
-            # de la compañía de otra forma.
             clave = (
-                nombre_normalizado,
-                "Cotizada en España",
+                buscado,
+                "Cotizada en Espana",
             )
 
-            empresas_por_clave[clave] = {
+            empresas[clave] = {
                 "nombre": nombre_alias,
                 "mercado": (
-                    "Cotizada en España"
+                    "Cotizada en Espana"
                 ),
                 "isin": "",
                 "variantes": {
-                    normalizar(variante)
-                    for variante
-                    in variantes_alias
+                    normalizar(alias)
+                    for alias in lista_alias
                     if len(
-                        normalizar(variante)
+                        normalizar(alias)
                     ) >= 4
                 },
             }
 
-    empresas = list(
-        empresas_por_clave.values()
+    resultado = list(
+        empresas.values()
     )
 
-    empresas.sort(
+    resultado.sort(
         key=lambda empresa: max(
             (
                 len(variante)
@@ -698,11 +583,11 @@ def cargar_empresas_bme() -> list[dict]:
     )
 
     print(
-        "Total de registros de empresas "
-        f"utilizados: {len(empresas)}"
+        "Total de empresas controladas: "
+        f"{len(resultado)}"
     )
 
-    return empresas
+    return resultado
 
 
 def contiene_variante(
@@ -725,17 +610,15 @@ def contiene_variante(
 
 def detectar_empresas(
     titulo: str,
-    descripcion: str,
+    resumen: str,
     empresas_bme: list[dict],
 ) -> list[dict]:
     contenido = normalizar(
-        titulo + " " + descripcion
+        titulo + " " + resumen
     )
 
     encontradas: list[dict] = []
-    claves_vistas: set[
-        tuple[str, str]
-    ] = set()
+    vistas: set[tuple[str, str]] = set()
 
     for empresa in empresas_bme:
         coincide = any(
@@ -757,29 +640,29 @@ def detectar_empresas(
             empresa["mercado"],
         )
 
-        if clave in claves_vistas:
+        if clave in vistas:
             continue
 
-        claves_vistas.add(clave)
+        vistas.add(clave)
         encontradas.append(empresa)
 
     return encontradas
 
 
-def convertir_fecha(entrada) -> datetime:
-    estructura = (
+def fecha_entrada(entrada) -> datetime:
+    fecha = (
         entrada.get("published_parsed")
         or entrada.get("updated_parsed")
     )
 
-    if estructura:
+    if fecha:
         return datetime(
-            estructura.tm_year,
-            estructura.tm_mon,
-            estructura.tm_mday,
-            estructura.tm_hour,
-            estructura.tm_min,
-            estructura.tm_sec,
+            fecha.tm_year,
+            fecha.tm_mon,
+            fecha.tm_mday,
+            fecha.tm_hour,
+            fecha.tm_min,
+            fecha.tm_sec,
             tzinfo=timezone.utc,
         )
 
@@ -792,7 +675,7 @@ def limpiar_resumen(valor: str) -> str:
     valor = re.sub(
         r"<[^>]+>",
         " ",
-        valor,
+        valor or "",
     )
 
     valor = html.unescape(valor)
@@ -800,95 +683,6 @@ def limpiar_resumen(valor: str) -> str:
     return " ".join(
         valor.split()
     )
-
-
-def leer_fuente_bloomberg(
-    seccion: str,
-    url: str,
-    empresas_bme: list[dict],
-) -> list[dict]:
-    fuente = feedparser.parse(
-        descargar(url)
-    )
-
-    if fuente.bozo and not fuente.entries:
-        raise RuntimeError(
-            str(fuente.bozo_exception)
-        )
-
-    resultados: list[dict] = []
-
-    for entrada in fuente.entries:
-        titulo = html.unescape(
-            " ".join(
-                entrada.get(
-                    "title",
-                    "",
-                ).split()
-            )
-        )
-
-        descripcion = limpiar_resumen(
-            entrada.get(
-                "summary",
-                entrada.get(
-                    "description",
-                    "",
-                ),
-            )
-        )
-
-        enlace = entrada.get(
-            "link",
-            "",
-        ).strip()
-
-        guid = (
-            entrada.get("id")
-            or enlace
-        )
-
-        autor = (
-            entrada.get("author")
-            or "Bloomberg"
-        )
-
-        if not titulo or not enlace:
-            continue
-
-        empresas = detectar_empresas(
-            titulo,
-            descripcion,
-            empresas_bme,
-        )
-
-        # Solo se guardan noticias en las que
-        # aparece alguna empresa cotizada en BME.
-        if not empresas:
-            continue
-
-        resultados.append(
-            {
-                "titulo": titulo,
-                "descripcion": descripcion,
-                "enlace": enlace,
-                "guid": guid,
-                "fecha": convertir_fecha(
-                    entrada
-                ),
-                "autor": autor,
-                "empresas": empresas,
-                "secciones": {seccion},
-            }
-        )
-
-    print(
-        f"{seccion}: "
-        f"{len(resultados)} noticias "
-        "relacionadas con empresas de BME"
-    )
-
-    return resultados
 
 
 def obtener_noticias(
@@ -901,28 +695,95 @@ def obtener_noticias(
         FUENTES_BLOOMBERG.items()
     ):
         try:
-            resultados = leer_fuente_bloomberg(
-                seccion,
-                url,
-                empresas_bme,
+            fuente = feedparser.parse(
+                descargar(url)
             )
 
-            fuentes_correctas += 1
+            if (
+                fuente.bozo
+                and not fuente.entries
+            ):
+                raise RuntimeError(
+                    str(
+                        fuente.bozo_exception
+                    )
+                )
 
-            for noticia in resultados:
-                clave = noticia[
-                    "enlace"
-                ].rstrip("/")
+            fuentes_correctas += 1
+            encontradas = 0
+
+            for entrada in fuente.entries:
+                titulo = html.unescape(
+                    " ".join(
+                        entrada.get(
+                            "title",
+                            "",
+                        ).split()
+                    )
+                )
+
+                resumen = limpiar_resumen(
+                    entrada.get(
+                        "summary",
+                        entrada.get(
+                            "description",
+                            "",
+                        ),
+                    )
+                )
+
+                enlace = entrada.get(
+                    "link",
+                    "",
+                ).strip()
+
+                if not titulo or not enlace:
+                    continue
+
+                empresas = detectar_empresas(
+                    titulo,
+                    resumen,
+                    empresas_bme,
+                )
+
+                if not empresas:
+                    continue
+
+                encontradas += 1
+                clave = enlace.rstrip("/")
 
                 if clave not in noticias:
-                    noticias[clave] = noticia
+                    noticias[clave] = {
+                        "titulo": titulo,
+                        "resumen": resumen,
+                        "enlace": enlace,
+                        "guid": (
+                            entrada.get("id")
+                            or enlace
+                        ),
+                        "fecha": fecha_entrada(
+                            entrada
+                        ),
+                        "autor": (
+                            entrada.get("author")
+                            or "Bloomberg"
+                        ),
+                        "empresas": empresas,
+                        "secciones": {
+                            seccion
+                        },
+                    }
 
                 else:
                     noticias[clave][
                         "secciones"
-                    ].update(
-                        noticia["secciones"]
-                    )
+                    ].add(seccion)
+
+            print(
+                f"{seccion}: "
+                f"{encontradas} noticias "
+                "de empresas BME"
+            )
 
         except Exception as error:
             print(
@@ -931,14 +792,13 @@ def obtener_noticias(
 
     if fuentes_correctas == 0:
         raise RuntimeError(
-            "No se ha podido leer ningún "
-            "canal de Bloomberg."
+            "No se pudo leer ningun "
+            "canal de Bloomberg"
         )
 
     print(
-        "Total de noticias actuales "
-        "sobre empresas de BME: "
-        f"{len(noticias)}"
+        "Noticias actuales relacionadas "
+        f"con empresas BME: {len(noticias)}"
     )
 
     return noticias
@@ -966,12 +826,10 @@ def cargar_anteriores() -> dict[str, ET.Element]:
         return anteriores
 
     try:
-        raiz = ET.parse(
-            SALIDA
-        ).getroot()
-
-        canal = raiz.find(
-            "channel"
+        canal = (
+            ET.parse(SALIDA)
+            .getroot()
+            .find("channel")
         )
 
         if canal is None:
@@ -996,109 +854,29 @@ def cargar_anteriores() -> dict[str, ET.Element]:
 
     except ET.ParseError:
         print(
-            "El rss.xml anterior no era válido. "
-            "Se reconstruirá."
+            "El rss.xml no era valido "
+            "y se reconstruira"
         )
 
     return anteriores
 
 
-def crear_descripcion(
-    noticia: dict,
-) -> str:
-    partes: list[str] = []
-
-    if noticia["descripcion"]:
-        partes.append(
-            "<p>"
-            + html.escape(
-                noticia["descripcion"]
-            )
-            + "</p>"
-        )
-
-    nombres = ", ".join(
-        html.escape(
-            empresa["nombre"]
-        )
-        for empresa
-        in noticia["empresas"]
-    )
-
-    partes.append(
-        "<p><strong>"
-        "Empresas detectadas:"
-        "</strong> "
-        f"{nombres}</p>"
-    )
-
-    mercados: dict[str, list[str]] = {}
-
-    for empresa in noticia["empresas"]:
-        mercado = empresa["mercado"]
-
-        mercados.setdefault(
-            mercado,
-            [],
-        ).append(
-            empresa["nombre"]
-        )
-
-    for mercado, empresas in mercados.items():
-        listado = ", ".join(
-            html.escape(empresa)
-            for empresa in empresas
-        )
-
-        partes.append(
-            "<p><strong>"
-            f"{html.escape(mercado)}:"
-            "</strong> "
-            f"{listado}</p>"
-        )
-
-    secciones = ", ".join(
-        sorted(
-            noticia["secciones"]
-        )
-    )
-
-    partes.append(
-        "<p><strong>"
-        "Fuente:"
-        "</strong> "
-        f"{html.escape(secciones)}</p>"
-    )
-
-    partes.append(
-        "<p>El artículo completo puede "
-        "requerir una suscripción a Bloomberg."
-        "</p>"
-    )
-
-    return "".join(partes)
-
-
-def crear_item(
-    noticia: dict,
-) -> ET.Element:
+def crear_item(noticia: dict) -> ET.Element:
     item = ET.Element("item")
 
-    empresas_titulo = ", ".join(
+    nombres = ", ".join(
         empresa["nombre"]
         for empresa
         in noticia["empresas"]
     )
 
-    titulo_rss = (
-        f"[{empresas_titulo}] "
-        f"{noticia['titulo']}"
-    )
-
     ET.SubElement(
         item,
         "title",
-    ).text = titulo_rss
+    ).text = (
+        f"[{nombres}] "
+        f"{noticia['titulo']}"
+    )
 
     ET.SubElement(
         item,
@@ -1120,12 +898,50 @@ def crear_item(
         )
     )
 
+    partes: list[str] = []
+
+    if noticia["resumen"]:
+        partes.append(
+            "<p>"
+            + html.escape(
+                noticia["resumen"]
+            )
+            + "</p>"
+        )
+
+    partes.append(
+        "<p><strong>"
+        "Empresas BME:"
+        "</strong> "
+        f"{html.escape(nombres)}</p>"
+    )
+
+    mercados = sorted(
+        {
+            empresa["mercado"]
+            for empresa
+            in noticia["empresas"]
+        }
+    )
+
+    partes.append(
+        "<p><strong>"
+        "Mercados:"
+        "</strong> "
+        f"{html.escape(', '.join(mercados))}"
+        "</p>"
+    )
+
+    partes.append(
+        "<p>El articulo completo puede "
+        "requerir suscripcion a Bloomberg."
+        "</p>"
+    )
+
     ET.SubElement(
         item,
         "description",
-    ).text = crear_descripcion(
-        noticia
-    )
+    ).text = "".join(partes)
 
     ET.SubElement(
         item,
@@ -1135,7 +951,7 @@ def crear_item(
     ET.SubElement(
         item,
         "category",
-    ).text = "Empresas cotizadas en España"
+    ).text = "Empresas cotizadas en Espana"
 
     categorias_vistas: set[str] = set()
 
@@ -1167,7 +983,7 @@ def crear_item(
 
 def fecha_item(item: ET.Element) -> datetime:
     try:
-        resultado = (
+        fecha = (
             email.utils
             .parsedate_to_datetime(
                 texto_elemento(
@@ -1177,12 +993,12 @@ def fecha_item(item: ET.Element) -> datetime:
             )
         )
 
-        if resultado.tzinfo is None:
-            resultado = resultado.replace(
+        if fecha.tzinfo is None:
+            fecha = fecha.replace(
                 tzinfo=timezone.utc
             )
 
-        return resultado
+        return fecha
 
     except (TypeError, ValueError):
         return datetime.min.replace(
@@ -1207,7 +1023,7 @@ def escribir_rss(
         canal,
         "title",
     ).text = (
-        "Bloomberg — Empresas españolas, "
+        "Bloomberg - Mercado Continuo, "
         "BME Growth y BME Scaleup"
     )
 
@@ -1267,7 +1083,7 @@ def escribir_rss(
 
 
 def dentro_del_horario() -> bool:
-    # Las ejecuciones manuales siempre funcionan.
+    # La ejecución manual siempre funciona.
     if os.environ.get(
         "GITHUB_EVENT_NAME",
         "",
@@ -1278,18 +1094,13 @@ def dentro_del_horario() -> bool:
         ZoneInfo("Europe/Madrid")
     )
 
-    # Domingo no se ejecuta.
-    if ahora.weekday() == 6:
+    # De lunes a sábado, 07:00-22:59.
+    if (
+        ahora.weekday() == 6
+        or not 7 <= ahora.hour <= 22
+    ):
         print(
-            "Hoy es domingo. "
-            "No se actualiza el RSS."
-        )
-        return False
-
-    # Desde las 07:00 hasta las 22:59.
-    if not 7 <= ahora.hour <= 22:
-        print(
-            "Fuera del horario: "
+            "Fuera de horario: "
             f"{ahora:%Y-%m-%d %H:%M %Z}"
         )
         return False
@@ -1305,8 +1116,8 @@ def main() -> None:
 
     if not empresas_bme:
         raise RuntimeError(
-            "No se ha descargado ninguna "
-            "empresa desde BME."
+            "No se descargaron empresas "
+            "desde BME"
         )
 
     noticias = obtener_noticias(
@@ -1314,14 +1125,15 @@ def main() -> None:
     )
 
     guardados = cargar_anteriores()
-
     nuevas = 0
 
-    for noticia in sorted(
+    noticias_ordenadas = sorted(
         noticias.values(),
-        key=lambda valor: valor["fecha"],
+        key=lambda noticia: noticia["fecha"],
         reverse=True,
-    ):
+    )
+
+    for noticia in noticias_ordenadas:
         clave = noticia[
             "enlace"
         ].rstrip("/")
@@ -1340,7 +1152,7 @@ def main() -> None:
     )
 
     print(
-        "Total de noticias conservadas: "
+        "Total conservadas: "
         f"{len(guardados)}"
     )
 
